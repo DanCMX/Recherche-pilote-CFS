@@ -1,0 +1,112 @@
+:root {
+  --bg: #0f1115;
+  --card: #171a21;
+  --text: #eaeef5;
+  --muted: #99a3b3;
+  --accent: #4f8cff;
+  --ok: #2fb66d;
+  --ko: #e5524d;
+  --border: #242936;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  background: var(--bg);
+  color: var(--text);
+}
+
+.container {
+  max-width: 820px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+header h1 {
+  margin: 0 0 4px 0;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.muted { color: var(--muted); }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.btn {
+  border: 1px solid var(--border);
+  background: #1e2330;
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform .04s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn.primary { border-color: var(--accent); }
+.btn.like { border-color: var(--ok); }
+.btn.dislike { border-color: var(--ko); }
+
+.votes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.count {
+  min-width: 34px;
+  display: inline-block;
+  text-align: center;
+  font-weight: 700;
+}
+
+.row { margin-bottom: 10px; }
+input, textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #11141b;
+  color: var(--text);
+}
+
+.comments {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.comments li {
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.comments .meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.comments .name { font-weight: 600; color: var(--text); }
+.comments .text { white-space: pre-wrap; }
+
+.status { margin-left: 10px; color: var(--muted); font-size: 14px; }
+.banner {
+  background: #b00020;
+  color: white;
+  text-align: center;
+  padding: 8px 0;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.hidden {
+  display: none;
+}
