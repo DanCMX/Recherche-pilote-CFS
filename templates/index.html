@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Suivi pilote — Prototype</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container">
+    <div id="live-banner" class="banner hidden">🔴 Live inactif</div>
+
+    <header>
+      <h1>Suivi pilote — Prototype v1</h1>
+      <p class="muted">Compteur de visites : <span id="visits">{{ visits }}</span></p>
+    </header>
+
+    <section class="card">
+      <h2>Recherche pilote</h2>
+      <div class="row" style="display:flex; gap:8px; align-items:center;">
+        <input id="search-input" type="text" placeholder="Nom ou numéro..." />
+        <button id="search-btn" class="btn primary">Rechercher</button>
+      </div>
+      <div id="search-status" class="status"></div>
+      <ul id="search-results" class="comments"></ul>
+    </section>
+
+    <section class="card">
+  <h2>Feedback rapide</h2>
+  <div class="votes">
+    <button id="btn-like" type="button" class="btn like" onclick="vote('like')">👍 J’aime</button>
+    <span id="like-count" class="count">{{ likes }}</span>
+    <button id="btn-dislike" type="button" class="btn dislike" onclick="vote('dislike')">👎 J’aime pas</button>
+    <span id="dislike-count" class="count">{{ dislikes }}</span>
+  </div>
+  <p class="hint">Chaque clic est comptabilisé instantanément.</p>
+</section>
+
+    <section class="card">
+      <h2>Laissez un commentaire</h2>
+      <form id="comment-form" onsubmit="sendComment(event)">
+        <div class="row">
+          <label for="name">Nom (optionnel)</label>
+          <input id="name" name="name" type="text" placeholder="Anonyme" maxlength="40" />
+        </div>
+        <div class="row">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="3" maxlength="600" required placeholder="Votre retour..."></textarea>
+        </div>
+        <button type="submit" class="btn primary">Envoyer</button>
+        <span id="comment-status" class="status"></span>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Derniers commentaires</h2>
+      <ul id="comments-list" class="comments">
+        {% for c in comments %}
+          <li>
+            <div class="meta">
+              <span class="name">{{ c.name }}</span>
+            </div>
+            <div class="text">{{ c.message }}</div>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <footer>
+      <p class="muted">Prototype — pas affilié à l’organisateur. Données persos non collectées.</p>
+    </footer>
+  </main>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
