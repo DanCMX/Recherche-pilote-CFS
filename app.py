@@ -6,6 +6,8 @@ os.makedirs(DATA_DIR, exist_ok=True)
 VOTES_FILE = os.path.join(DATA_DIR, "votes.json")
 COUNTER_FILE = os.path.join(DATA_DIR, "counter.json")
 COMMENTS_FILE = os.path.join(DATA_DIR, "comments.txt")
+WEBHOOK_URL = os.environ.get("FEEDBACK_WEBHOOK_URL")
+WEBHOOK_TOKEN = os.environ.get("FEEDBACK_TOKEN")
 
 # En prod, on pointera sur le live :
 RESULTS_URL = os.environ.get("RESULTS_URL", "https://www.courses-sur-sable.fr/live/")
@@ -62,6 +64,18 @@ def sanitize_text(s: str, max_len: int = 600):
     s = (s or "").strip().replace("\r", " ").replace("\n", " ")
     return s[:max_len]
 
+def send_feedback(payload: dict):
+    if not WEBHOOK_URL or not WEBHOOK_TOKEN:
+        return
+    try:
+        data = dict(payload)
+        data["token"] = WEBHOOK_TOKEN
+        data["userAgent"] = request.headers.get("User-Agent", "")
+        data["ip"] = request.headers.get("X-Forwarded-For", request.remote_addr or "")
+        requests.post(WEBHOOK_URL, json=data, timeout=5)
+    except Exception as e:
+        print("[feedback] warn:", e)
+
 # ====== INITIALISATION ======
 ensure_data_files()
 
@@ -77,8 +91,10 @@ def index():
     # votes
     with votes_lock:
         votes = read_json(VOTES_FILE)
+send_feedback({"type": "vote", "action": vtype})
+return jsonify({"ok": True, "likes": votes["likes"], "dislikes": votes["dislikes"]})
 
-    # commentaires
+# commentaires
     comments = []
     try:
         with open(COMMENTS_FILE, "r", encoding="utf-8") as f:
@@ -158,6 +174,8 @@ def api_comment():
         with open(COMMENTS_FILE, "a", encoding="utf-8") as f:
             f.write(record + "\n")
 
+    send_feedback({"type": "comment", "name": name, "message": message})
+    
     return jsonify({"ok": True})
 
 # ====== API POUR LA RECHERCHE PILOTE ======
