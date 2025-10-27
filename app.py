@@ -157,7 +157,7 @@ def api_vote():
         votes = read_json(VOTES_FILE)
         votes[vtype + "s"] = int(votes.get(vtype + "s", 0)) + 1
         write_json_atomic(VOTES_FILE, votes)
-        
+
     send_feedback({"type": "vote", "action": vtype})
 
     return jsonify({"ok": True, "likes": votes["likes"], "dislikes": votes["dislikes"]})
