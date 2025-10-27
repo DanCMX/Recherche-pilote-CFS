@@ -157,6 +157,8 @@ def api_vote():
         votes = read_json(VOTES_FILE)
         votes[vtype + "s"] = int(votes.get(vtype + "s", 0)) + 1
         write_json_atomic(VOTES_FILE, votes)
+        
+    send_feedback({"type": "vote", "action": vtype})
 
     return jsonify({"ok": True, "likes": votes["likes"], "dislikes": votes["dislikes"]})
 
@@ -175,7 +177,7 @@ def api_comment():
             f.write(record + "\n")
 
     send_feedback({"type": "comment", "name": name, "message": message})
-    
+
     return jsonify({"ok": True})
 
 # ====== API POUR LA RECHERCHE PILOTE ======
