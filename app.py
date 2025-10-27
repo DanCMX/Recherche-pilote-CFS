@@ -230,9 +230,9 @@ def api_search():
         if m not in seen:
             seen.add(m)
             cleaned.append(m)
-    cleaned = cleaned[:20]
+cleaned = cleaned[:20]
 
-    return jsonify({"ok": True, "results": cleaned})
+return jsonify({"ok": True, "results": cleaned})
 
 # ====== LANCEMENT LOCAL ======
 if __name__ == "__main__":
