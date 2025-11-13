@@ -213,6 +213,10 @@ def api_search():
         print("[search] warn:", e)
         return jsonify({"ok": True, "results": []})
 
+@app.route('/sw.js')
+def service_worker():
+    return app.send_static_file('sw.js')
+
 # =========================================
 # Lancement
 # =========================================
