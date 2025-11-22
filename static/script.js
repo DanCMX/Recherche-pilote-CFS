@@ -1,139 +1,172 @@
-async function fetchJSON(url, opts = {}) {
-  const res = await fetch(url, {
-    headers: { "Content-Type": "application/json" },
-    ...opts
-  });
-  if (!res.ok) {
-    // essaie de remonter un message lisible
-    let txt = "";
-    try { txt = await res.text(); } catch(e) {}
-    throw new Error(txt || res.statusText || "HTTP " + res.status);
-  }
-  return res.json();
-}
-
+// === RECHERCHE PILOTE ===
 async function searchPilot() {
-  const q = (document.getElementById("search-input").value || "").trim();
-  const status = document.getElementById("search-status");
-  const list = document.getElementById("search-results");
-  const banner = document.getElementById("live-banner");
+  const input   = document.getElementById("search-input");
+  const status  = document.getElementById("search-status");
+  const list    = document.getElementById("search-results");
+  const banner  = document.getElementById("live-banner");
+  const btn     = document.getElementById("search-btn");
 
-  // on repart propre
-  status.textContent = "";
-  list.innerHTML = "";
-  if (banner) banner.classList.add("hidden");
-
-  if (!q) {
-    status.textContent = "Saisissez un nom ou un numéro.";
+  if (!input || !status || !list) {
+    console.error("Éléments de recherche manquants dans le DOM");
     return;
   }
 
-  status.textContent = "Recherche...";
+  const query = (input.value || "").trim();
+  if (!query) {
+    status.textContent = "Merci de saisir un nom ou un numéro.";
+    return;
+  }
+
+  status.textContent = "Recherche en cours…";
+  list.innerHTML = "";
+  if (banner) banner.classList.add("hidden");
+  if (btn) btn.disabled = true;
 
   try {
-    const data = await fetchJSON("/api/search", {
-      method: "POST",
-      body: JSON.stringify({ q })
-    });
+    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    if (!res.ok) {
+      throw new Error(`Erreur serveur (${res.status})`);
+    }
 
-    // Aucun résultat → affiche la bannière
-    if (!data.ok || !data.results || data.results.length === 0) {
-      status.textContent = (data && data.message) || "Aucun résultat ou live inactif.";
-      if (banner) banner.classList.remove("hidden");
+    const data = await res.json();
+    // On suppose que ton endpoint renvoie { live_active: bool, results: [...] }
+    if (banner && data.live_active === false) {
+      banner.classList.remove("hidden");
+    }
+
+    const results = data.results || data.pilots || [];
+    if (!results.length) {
+      status.textContent = "Aucun résultat trouvé pour cette recherche.";
       return;
     }
 
-    // Résultats → cache la bannière et affiche la liste
-    status.textContent = `Résultats : ${data.results.length}`;
-    data.results.forEach(line => {
+    results.forEach((r) => {
       const li = document.createElement("li");
-      li.className = "search-item";
-      li.textContent = line;
+      // Adapte ces champs aux noms utilisés dans ta réponse JSON
+      const rank   = r.rank   ?? r.position ?? "";
+      const number = r.number ?? r.dossard ?? "";
+      const name   = r.name   ?? r.pilote   ?? "";
+      const gap    = r.gap    ?? r.ecart    ?? "";
+
+      li.className = "result-item";
+      li.textContent = `${rank ? rank + ". " : ""}#${number} ${name} ${gap ? " — " + gap : ""}`;
       list.appendChild(li);
     });
-    if (banner) banner.classList.add("hidden");
+
+    status.textContent = "";
   } catch (e) {
-    status.textContent = "Erreur: " + e.message;
-    if (banner) banner.classList.remove("hidden");
+    console.error("Erreur searchPilot:", e);
+    status.textContent = "Erreur : " + e.message;
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("search-btn");
-  const input = document.getElementById("search-input");
-  if (btn) btn.addEventListener("click", searchPilot);
-  if (input) input.addEventListener("keydown", (ev) => {
-    if (ev.key === "Enter") searchPilot();
-  });
-});
-
+// === VOTE LIKE / DISLIKE ===
 async function vote(type) {
+  const status = document.getElementById("comment-status");
+  if (status) status.textContent = "";
+
   try {
     const res = await fetch("/api/vote", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({type})
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type })
     });
-    const data = await res.json();
-    document.getElementById("like-count").textContent = data.likes ?? 0;
-    document.getElementById("dislike-count").textContent = data.dislikes ?? 0;
-    console.log("Vote enregistré:", data);
+
+    if (!res.ok) {
+      throw new Error(`Erreur vote (${res.status})`);
+    }
+
+    await refreshComments();
   } catch (e) {
-    alert("Erreur: " + e.message);
+    console.error("Erreur vote:", e);
+    if (status) status.textContent = "Erreur lors de l'envoi du vote.";
   }
 }
 
-async function sendComment(ev) {
-  ev.preventDefault();
-  const name = document.getElementById("name").value.trim();
-  const message = document.getElementById("message").value.trim();
-  const status = document.getElementById("comment-status");
+// === ENVOI COMMENTAIRE ===
+async function sendComment(event) {
+  if (event) event.preventDefault();
+
+  const nameInput = document.getElementById("name");
+  const msgInput  = document.getElementById("message");
+  const status    = document.getElementById("comment-status");
+
+  const name    = (nameInput && nameInput.value || "").trim();
+  const message = (msgInput  && msgInput.value  || "").trim();
+
   if (!message) {
-    status.textContent = "Message requis.";
+    if (status) status.textContent = "Merci d'écrire un message.";
     return;
   }
-  status.textContent = "Envoi...";
+
+  if (status) status.textContent = "Envoi en cours…";
 
   try {
     const res = await fetch("/api/comment", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, message })
     });
-    const data = await res.json();
 
-    if (data.ok) {
-      status.textContent = "Merci pour votre commentaire !";
-      document.getElementById("message").value = "";
-      document.getElementById("name").value = "";
-      refreshComments(); // 👈 on actualise la liste juste après
-      setTimeout(() => status.textContent = "", 2000);
-    } else {
-      status.textContent = "Erreur : " + (data.error || "inconnue");
+    if (!res.ok) {
+      throw new Error(`Erreur commentaire (${res.status})`);
     }
+
+    if (msgInput) msgInput.value = "";
+    if (status) status.textContent = "Merci pour ton retour !";
+
+    await refreshComments();
   } catch (e) {
-    status.textContent = "Erreur : " + e.message;
+    console.error("Erreur sendComment:", e);
+    if (status) status.textContent = "Erreur : " + e.message;
   }
 }
 
+// === RAFRAÎCHIR LES STATS / COMMENTAIRES ===
 async function refreshComments() {
   try {
     const res = await fetch("/api/stats");
+    if (!res.ok) throw new Error(`Erreur stats (${res.status})`);
     const data = await res.json();
+
+    // likes / dislikes
+    const likeEl    = document.getElementById("like-count");
+    const dislikeEl = document.getElementById("dislike-count");
+    if (likeEl)    likeEl.textContent    = data.likes    ?? 0;
+    if (dislikeEl) dislikeEl.textContent = data.dislikes ?? 0;
+
+    // commentaires
     const list = document.getElementById("comments-list");
+    if (!list) return;
+
     list.innerHTML = "";
-    (data.comments || []).forEach(c => {
+    (data.comments || []).forEach((c) => {
       const li = document.createElement("li");
-      li.innerHTML = `<div class="meta"><span class="name">${c.name || "Anonyme"}</span></div>
-                      <div class="text">${c.message}</div>`;
+      li.className = "comment-item";
+      li.innerHTML = `
+        <div class="meta">
+          <span class="name">${c.name || "Anonyme"}</span>
+        </div>
+        <div class="text">${c.message}</div>
+      `;
       list.appendChild(li);
     });
   } catch (e) {
     console.error("Erreur refreshComments:", e);
   }
 }
+
+// === SERVICE WORKER PWA ===
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js")
+  navigator.serviceWorker
+    .register("/sw.js")
     .then(() => console.log("SW registered"))
     .catch((err) => console.error("SW error", err));
 }
+
+// Au chargement, on récupère les stats
+document.addEventListener("DOMContentLoaded", () => {
+  refreshComments().catch(() => {});
+});
