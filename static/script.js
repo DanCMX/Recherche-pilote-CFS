@@ -30,8 +30,10 @@ async function searchPilot() {
 
     const data = await res.json();
 
-    // On essaye de récupérer un tableau de résultats
-    const results = data.results || data.pilots || data.data || [];
+    // DEBUG : on affiche brut ce que renvoie le serveur
+console.log("Réponse /api/search :", data);
+zone.textContent = "Réponse brute du serveur :\n" + JSON.stringify(data, null, 2);
+return;
     if (!Array.isArray(results) || !results.length) {
       zone.textContent = "Aucun résultat trouvé pour cette recherche.";
       return;
