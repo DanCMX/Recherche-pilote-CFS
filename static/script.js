@@ -17,67 +17,13 @@ async function searchPilot() {
   zone.textContent = "Recherche en cours…";
 
   try {
-    // 🚨 ICI : on passe en POST au lieu de GET
+    // On suppose que ton endpoint Flask attend un POST JSON sur /api/search
     const res = await fetch("/api/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query })  // adapte le nom du champ si besoin
+      body: JSON.stringify({ query })   // adapte le nom du champ si besoin
     });
 
-    if (!res.ok) {
-      throw new Error(`Erreur serveur (${res.status})`);
-    }
-
-    const data = await res.json();
-
-    // On essaye de récupérer un tableau de résultats
-    const results = data.results || data.pilots || data.data || [];
-    if (!Array.isArray(results) || !results.length) {
-      zone.textContent = "Aucun résultat trouvé pour cette recherche.";
-      return;
-    }
-
-    // On construit une liste HTML
-    const ul = document.createElement("ul");
-    ul.className = "results-list";
-
-    results.forEach(r => {
-      const li = document.createElement("li");
-      li.className = "result-item";
-
-      const rank   = r.rank   ?? r.position ?? "";
-      const number = r.number ?? r.dossard  ?? "";
-      const name   = r.name   ?? r.pilote   ?? "";
-      const gap    = r.gap    ?? r.ecart    ?? "";
-
-      let text = "";
-      if (rank) text += rank + ". ";
-      if (number) text += "#" + number + " ";
-      if (name) text += name;
-      if (gap)  text += " — " + gap;
-
-      li.textContent = text || JSON.stringify(r);
-      ul.appendChild(li);
-    });
-
-    zone.innerHTML = "";
-    zone.appendChild(ul);
-  } catch (e) {
-    console.error("Erreur searchPilot:", e);
-    zone.textContent = "Erreur : " + e.message;
-  }
-
-  const query = (input.value || "").trim();
-  if (!query) {
-    zone.textContent = "Merci de saisir un nom ou un numéro.";
-    return;
-  }
-
-  zone.textContent = "Recherche en cours…";
-
-  try {
-    // ⚠ adapte /api/search si ton endpoint est différent (ex: /search)
-    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
     if (!res.ok) {
       throw new Error(`Erreur serveur (${res.status})`);
     }
@@ -212,7 +158,23 @@ if ("serviceWorker" in navigator) {
     .catch((err) => console.error("SW error", err));
 }
 
-// === Au chargement, on récupère les stats ===
+// === RACCORDEMENTS AU DOM ===
 document.addEventListener("DOMContentLoaded", () => {
+  // bouton GO : on écoute le submit du formulaire
+  const form = document.getElementById("search-form");
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      searchPilot();
+    });
+  }
+
+  // formulaire de commentaires : on accroche sendComment
+  const feedbackForm = document.querySelector(".feedback form");
+  if (feedbackForm) {
+    feedbackForm.addEventListener("submit", sendComment);
+  }
+
+  // on charge les stats / commentaires
   refreshComments().catch(() => {});
 });
