@@ -21,7 +21,7 @@ async function searchPilot() {
     const res = await fetch("/api/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query })   // adapte le nom du champ si besoin
+      body: JSON.stringify({ q: query })   // adapte le nom du champ si besoin
     });
 
     if (!res.ok) {
