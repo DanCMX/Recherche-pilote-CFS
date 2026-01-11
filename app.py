@@ -12,7 +12,8 @@ VOTES_FILE    = os.path.join(DATA_DIR, "votes.json")
 COUNTER_FILE  = os.path.join(DATA_DIR, "counter.json")
 COMMENTS_FILE = os.path.join(DATA_DIR, "comments.txt")
 
-RESULTS_URL   = os.environ.get("RESULTS_URL", "https://www.courses-sur-sable.fr/live/")
+RESULTS_URL = os.environ.get("RESULTS_URL", "https://www.courses-sur-sable.fr/chrono/live.html")
+
 
 WEBHOOK_URL   = os.environ.get("FEEDBACK_WEBHOOK_URL")
 WEBHOOK_TOKEN = os.environ.get("FEEDBACK_TOKEN")
