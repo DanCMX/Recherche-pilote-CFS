@@ -1,7 +1,9 @@
+const DEBUG = true; // <-- mets false quand tout est OK
+
 // === RECHERCHE PILOTE ===
 async function searchPilot() {
-  const input  = document.getElementById("search-input");
-  const zone   = document.getElementById("results");
+  const input = document.getElementById("search-input");
+  const zone = document.getElementById("results");
 
   if (!input || !zone) {
     console.error("Éléments DOM manquants pour la recherche");
@@ -17,11 +19,11 @@ async function searchPilot() {
   zone.textContent = "Recherche en cours…";
 
   try {
-    // On suppose que ton endpoint Flask attend un POST JSON sur /api/search
     const res = await fetch("/api/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ q: query })   // adapte le nom du champ si besoin
+      // ✅ IMPORTANT : on envoie q + debug si besoin
+      body: JSON.stringify({ q: query, debug: DEBUG })
     });
 
     if (!res.ok) {
@@ -30,11 +32,18 @@ async function searchPilot() {
 
     const data = await res.json();
 
-    // DEBUG : on affiche brut ce que renvoie le serveur
-console.log("Réponse /api/search :", data);
-zone.textContent = "Réponse brute du serveur :\n" + JSON.stringify(data, null, 2);
-return;
-    if (!Array.isArray(results) || !results.length) {
+    // ✅ DEBUG : afficher la réponse brute si DEBUG=true
+    if (DEBUG) {
+      console.log("Réponse /api/search :", data);
+      zone.textContent =
+        "Réponse brute du serveur :\n" + JSON.stringify(data, null, 2);
+      return;
+    }
+
+    // ✅ Récupération des résultats renvoyés par ton app.py
+    const results = Array.isArray(data.results) ? data.results : [];
+
+    if (!results.length) {
       zone.textContent = "Aucun résultat trouvé pour cette recherche.";
       return;
     }
@@ -43,20 +52,21 @@ return;
     const ul = document.createElement("ul");
     ul.className = "results-list";
 
-    results.forEach(r => {
+    results.forEach((r) => {
       const li = document.createElement("li");
       li.className = "result-item";
 
-      const rank   = r.rank   ?? r.position ?? "";
-      const number = r.number ?? r.dossard  ?? "";
-      const name   = r.name   ?? r.pilote   ?? "";
-      const gap    = r.gap    ?? r.ecart    ?? "";
+      // ✅ Tes champs backend sont pos/num/name/gap/time (d'après app.py)
+      const rank = r.pos || "";
+      const number = r.num || "";
+      const name = r.name || "";
+      const gap = r.gap || r.time || "";
 
       let text = "";
       if (rank) text += rank + ". ";
       if (number) text += "#" + number + " ";
       if (name) text += name;
-      if (gap)  text += " — " + gap;
+      if (gap) text += " — " + gap;
 
       li.textContent = text || JSON.stringify(r);
       ul.appendChild(li);
@@ -89,11 +99,11 @@ async function sendComment(event) {
   if (event) event.preventDefault();
 
   const nameInput = document.getElementById("name");
-  const msgInput  = document.getElementById("message");
-  const status    = document.getElementById("comment-status");
+  const msgInput = document.getElementById("message");
+  const status = document.getElementById("comment-status");
 
-  const name    = (nameInput && nameInput.value || "").trim();
-  const message = (msgInput  && msgInput.value  || "").trim();
+  const name = (nameInput && nameInput.value || "").trim();
+  const message = (msgInput && msgInput.value || "").trim();
 
   if (!message) {
     if (status) status.textContent = "Merci d'écrire un message.";
@@ -128,16 +138,15 @@ async function refreshComments() {
     const data = await res.json();
     const list = document.getElementById("comments-list");
 
-    // compteurs like/dislike si présents
-    const likeEl    = document.getElementById("like-count");
+    const likeEl = document.getElementById("like-count");
     const dislikeEl = document.getElementById("dislike-count");
-    if (likeEl)    likeEl.textContent    = data.likes    ?? 0;
+    if (likeEl) likeEl.textContent = data.likes ?? 0;
     if (dislikeEl) dislikeEl.textContent = data.dislikes ?? 0;
 
     if (!list) return;
 
     list.innerHTML = "";
-    (data.comments || []).forEach(c => {
+    (data.comments || []).forEach((c) => {
       const li = document.createElement("li");
       li.innerHTML = `
         <div class="meta">
@@ -162,7 +171,6 @@ if ("serviceWorker" in navigator) {
 
 // === RACCORDEMENTS AU DOM ===
 document.addEventListener("DOMContentLoaded", () => {
-  // bouton GO : on écoute le submit du formulaire
   const form = document.getElementById("search-form");
   if (form) {
     form.addEventListener("submit", (e) => {
@@ -171,12 +179,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // formulaire de commentaires : on accroche sendComment
+  // ⚠️ Si tu n’as pas de <form> dans .feedback, ça ne sert à rien.
+  // Laisse si tu en as un, sinon tu peux supprimer ces 4 lignes.
   const feedbackForm = document.querySelector(".feedback form");
   if (feedbackForm) {
     feedbackForm.addEventListener("submit", sendComment);
   }
 
-  // on charge les stats / commentaires
   refreshComments().catch(() => {});
 });
