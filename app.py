@@ -167,22 +167,49 @@ def api_comment():
 @app.route("/api/search", methods=["POST"])
 def api_search():
     data = request.get_json(silent=True) or {}
-q = sanitize_text(
-    data.get("q") or data.get("query") or data.get("search") or "",
-    80
-)
+
+    q = sanitize_text(
+        data.get("q") or data.get("query") or data.get("search") or "",
+        80
+    )
 
     if not q:
         return jsonify({"ok": True, "results": []})
 
     try:
         # Récupère la page live
-        r = requests.get(RESULTS_URL, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
-        if r.status_code != 200 or not r.text:
+        r = requests.get(
+            RESULTS_URL,
+            timeout=10,
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+        html = r.text or ""
+
+        # 🔎 DEBUG (temporaire) : voir ce que Render récupère vraiment
+        if data.get("debug"):
+            return jsonify({
+                "ok": True,
+                "results": [],
+                "debug": {
+                    "url": RESULTS_URL,
+                    "status_code": r.status_code,
+                    "len_html": len(html),
+                    "has_table_tag": ("<table" in html.lower()),
+                    "tables_count": html.lower().count("<table"),
+                    "html_head": html[:600],
+                }
+            })
+
+        if r.status_code != 200 or not html:
             return jsonify({"ok": True, "results": []})
-        html = r.text
 
         soup = BeautifulSoup(html, "html.parser")
+
+        # ... le reste de ton code parsing ici ...
+
+    except Exception as e:
+        return jsonify({"ok": True, "results": [], "error": str(e)})
+
 
         # >>>> Adapte ici si besoin selon la structure exacte <<<<
         # Exemple générique : table principale
