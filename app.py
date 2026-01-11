@@ -208,8 +208,17 @@ def api_search():
 
         # ... le reste de ton code parsing ici ...
 
-    except Exception as e:
-        return jsonify({"ok": True, "results": [], "error": str(e)})
+        except Exception as e:
+        # debug si demandé
+        if data.get("debug"):
+            return jsonify({
+                "ok": False,
+                "results": [],
+                "error": str(e),
+                "trace": traceback.format_exc()
+            }), 500
+
+        return jsonify({"ok": False, "results": [], "error": "server_error"}), 500
 
 
         # >>>> Adapte ici si besoin selon la structure exacte <<<<
