@@ -1,3 +1,4 @@
+import traceback
 const DEBUG = true; // <-- mets false quand tout est OK
 
 // === RECHERCHE PILOTE ===
