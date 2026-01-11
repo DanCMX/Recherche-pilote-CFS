@@ -174,6 +174,8 @@ def api_search():
         80
     )
 
+    debug = bool(data.get("debug"))
+
     if not q:
         return jsonify({"ok": True, "results": []})
 
@@ -181,13 +183,19 @@ def api_search():
         # Récupère la page live
         r = requests.get(
             RESULTS_URL,
-            timeout=10,
-            headers={"User-Agent": "Mozilla/5.0"}
+            timeout=15,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+                "Cache-Control": "no-cache",
+                "Pragma": "no-cache",
+            }
         )
         html = r.text or ""
 
-        # 🔎 DEBUG (temporaire) : voir ce que Render récupère vraiment
-        if data.get("debug"):
+        # 🔎 DEBUG : voir ce que Render récupère vraiment
+        if debug:
             return jsonify({
                 "ok": True,
                 "results": [],
@@ -205,6 +213,55 @@ def api_search():
             return jsonify({"ok": True, "results": []})
 
         soup = BeautifulSoup(html, "html.parser")
+
+        # ✅ Prend la table la plus “grosse” (souvent la bonne)
+        tables = soup.find_all("table")
+        best_table = None
+        best_rows_count = 0
+        for t in tables:
+            trs = t.find_all("tr")
+            if len(trs) > best_rows_count:
+                best_rows_count = len(trs)
+                best_table = t
+
+        rows = []
+        if best_table:
+            trs = best_table.select("tr")
+            for tr in trs[1:]:  # skip header
+                cols = [c.get_text(" ", strip=True) for c in tr.select("th,td")]
+                if cols:
+                    rows.append(cols)
+
+        # Filtre sur la requête (nom ou numéro)
+        q_low = q.lower()
+        filtered = []
+        for cols in rows:
+            line_low = " ".join(cols).lower()
+            if q_low in line_low:
+                filtered.append({
+                    "raw": cols,
+                    "pos": cols[0] if len(cols) > 0 else "",
+                    "num": cols[1] if len(cols) > 1 else "",
+                    "name": cols[2] if len(cols) > 2 else "",
+                    "time": cols[3] if len(cols) > 3 else "",
+                    "gap": cols[4] if len(cols) > 4 else "",
+                })
+
+        return jsonify({"ok": True, "results": filtered})
+
+    except Exception as e:
+        # ✅ Si debug demandé, renvoie l’erreur complète (sinon reste silencieux)
+        if debug:
+            return jsonify({
+                "ok": False,
+                "results": [],
+                "error": str(e),
+                "trace": traceback.format_exc()
+            }), 500
+
+        print("[search] warn:", e)
+        return jsonify({"ok": True, "results": []})
+
 
         # ... le reste de ton code parsing ici ...
 
