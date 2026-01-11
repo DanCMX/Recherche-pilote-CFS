@@ -166,7 +166,11 @@ def api_comment():
 @app.route("/api/search", methods=["POST"])
 def api_search():
     data = request.get_json(silent=True) or {}
-    q = sanitize_text(data.get("q", ""), 80)
+q = sanitize_text(
+    data.get("q") or data.get("query") or data.get("search") or "",
+    80
+)
+
     if not q:
         return jsonify({"ok": True, "results": []})
 
