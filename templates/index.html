@@ -9,77 +9,41 @@
   <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
   <meta name="theme-color" content="#1e2a4a" />
 
-  <!-- CSS et JS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script defer src="{{ url_for('static', filename='script.js') }}"></script>
 </head>
+
 <body>
   <div class="app">
 
     <header class="app-header">
       <div class="live live-left">
-        <span></span>
-        <small>LIVE ACTIF</small>
+        <span></span><small id="live-status">LIVE</small>
       </div>
 
       <h1 class="title">Suivi pilote CFS</h1>
 
       <div class="live live-right">
-        <span></span>
-        <small>LIVE ACTIF</small>
+        <span></span><small id="flag-status">—</small>
       </div>
 
-      <p class="subtitle">Trouver votre pilote parmi tous la meute</p>
+      <p class="subtitle">Trouver votre pilote parmi toute la meute</p>
+      <p class="subtitle" id="time-status"></p>
     </header>
 
     <main class="main">
-
-      <!-- FORMULAIRE DE RECHERCHE -->
-      <form id="search-form" class="search" onsubmit="searchPilot(); return false;">
-        <input
-          id="search-input"
-          class="search-input"
-          name="query"
-          placeholder="Nom ou numero"
-        />
-        <button id="search-go" class="btn-go" type="submit">GO</button>
+      <form id="search-form" class="search">
+        <input id="search-input" class="search-input" placeholder="Nom ou numéro" />
+        <button class="btn-go" type="submit">GO</button>
       </form>
 
-      <div class="results" id="results">Affichage des résultats</div>
-
-      <!-- FORMULAIRE DE COMMENTAIRES -->
-      <form id="feedback-form" class="feedback">
-        <div class="icons">
-          <button type="button" class="icon like" data-value="like" aria-label="J'aime">👍</button>
-          <button type="button" class="icon dislike" data-value="dislike" aria-label="Je n'aime pas">👎</button>
-        </div>
-
-        <p class="feedback-text">
-          Envoyez vos retours, positifs ou négatifs — ils m'aideront à l'améliorer !
-        </p>
-
-        <input
-          class="name"
-          name="name"
-          placeholder="Nom (optionnel)"
-        />
-
-        <textarea
-          class="message"
-          name="message"
-          placeholder="Votre message"
-        ></textarea>
-
-        <!-- BOUTON ENVOI COMMENTAIRE -->
-        <button class="btn-send" type="submit">Envoyer</button>
-      </form>
-
+      <div class="results" id="results">Saisis un numéro ou un nom.</div>
     </main>
 
     <footer class="footer-note">
-      Développé seul par un passionné de motocross, frustré de ne pas trouver facilement les résultats sur le live.
-      L’appli peut être un peu lente (hébergement gratuit), mais j’espère la faire évoluer vers une version complète.
+      Développé par un passionné. Version V2 en cours (objectif: historique + filtres + accès premium).
     </footer>
+
   </div>
 </body>
 </html>
