@@ -7,7 +7,7 @@ const FAV_KEY = "cfs_favorites_v1";
 const FAV_LIMIT = 2;
 
 // Mets ici ton lien Google Form (feedback)
-const FEEDBACK_URL = "https://docs.google.com/forms/d/e/TON_ID/viewform";
+const FEEDBACK_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeR_CQQTAXImL-kIcHEy8ifVz6jeLU3wFBD2SseCBPEOavjIA/viewform?usp=header";
 
 // ===== Helpers =====
 function esc(s) {
