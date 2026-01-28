@@ -7,43 +7,103 @@
 
   <!-- PWA -->
   <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-  <meta name="theme-color" content="#1e2a4a" />
+  <meta name="theme-color" content="#0b1220" />
 
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script defer src="{{ url_for('static', filename='script.js') }}"></script>
 </head>
 
 <body>
-  <div class="app">
+  <div class="wrap">
+    <header class="hero card">
+      <div class="hero-top">
+        <div class="brand">
+          <div class="logo-dot" aria-hidden="true"></div>
+          <div>
+            <h1>Suivi pilote CFS</h1>
+            <p class="muted">Trouver votre pilote parmi toute la meute</p>
+          </div>
+        </div>
 
-    <header class="app-header">
-      <div class="live live-left">
-        <span></span><small id="live-status">LIVE</small>
+        <div class="status">
+          <span id="status-dot" class="dot dot-off" aria-hidden="true"></span>
+          <span id="status-text" class="status-text">Chargement…</span>
+        </div>
       </div>
 
-      <h1 class="title">Suivi pilote CFS</h1>
-
-      <div class="live live-right">
-        <span></span><small id="flag-status">—</small>
+      <div class="meta">
+        <div class="pill">
+          <span class="muted">Écoulé</span>
+          <strong id="meta-elapsed">—</strong>
+        </div>
+        <div class="pill">
+          <span class="muted">Restant</span>
+          <strong id="meta-remaining">—</strong>
+        </div>
+        <div class="pill">
+          <span class="muted">Pilotes</span>
+          <strong id="meta-count">—</strong>
+        </div>
       </div>
 
-      <p class="subtitle">Trouver votre pilote parmi toute la meute</p>
-      <p class="subtitle" id="time-status"></p>
-    </header>
-
-    <main class="main">
-      <form id="search-form" class="search">
-        <input id="search-input" class="search-input" placeholder="Nom ou numéro" />
-        <button class="btn-go" type="submit">GO</button>
+      <form id="search-form" class="search" autocomplete="off">
+        <input id="search-input" class="search-input" placeholder="Nom ou numéro (ex: 214, KELLETT…)" />
+        <button class="btn btn-go" type="submit">GO</button>
       </form>
 
-      <div class="results" id="results">Saisis un numéro ou un nom.</div>
+      <div class="hint muted">
+        Astuce : mets tes pilotes en ⭐ favoris pour les suivre sans retaper.
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- Résultat recherche (1 pilote libre) -->
+      <section class="card">
+        <div class="section-head">
+          <h2>Résultat</h2>
+          <span class="muted small">Recherche libre</span>
+        </div>
+
+        <div id="search-zone" class="zone muted">Saisis un numéro ou un nom pour afficher un pilote.</div>
+      </section>
+
+      <!-- Favoris (2 max pour tests) -->
+      <section class="card">
+        <div class="section-head">
+          <h2>Mes favoris</h2>
+          <span class="muted small">max 2 (tests)</span>
+        </div>
+
+        <div id="favorites-zone" class="zone muted">Aucun favori pour l’instant.</div>
+
+        <div class="premium muted small">
+          Premium bientôt : suivre plus de pilotes, filtres par catégorie, confort avancé.
+        </div>
+      </section>
+
+      <!-- Feedback -->
+      <section class="card">
+        <div class="section-head">
+          <h2>Feedback</h2>
+          <span class="muted small">2 minutes</span>
+        </div>
+
+        <p class="muted">
+          Un bug, une idée, une amélioration ? Ton retour m’aide à rendre l’appli plus solide.
+        </p>
+
+        <!-- Remplace le href par ton lien Google Form -->
+        <a class="btn btn-secondary" id="feedback-link" href="#" target="_blank" rel="noopener">
+          Donner mon avis
+        </a>
+      </section>
     </main>
 
-    <footer class="footer-note">
-      Développé par un passionné. Version V2 en cours (objectif: historique + filtres + accès premium).
+    <footer class="footer muted small">
+      <span>Powered by <strong>CMX Créations</strong></span>
+      <span>•</span>
+      <span>Version test (Touquet)</span>
     </footer>
-
   </div>
 </body>
 </html>
