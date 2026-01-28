@@ -139,7 +139,53 @@ def api_pilots():
 def api_pilot(num):
     data, err, status = get_data_cached()
     pilots = parse_rows_as_dicts(data)
+    
+@app.route("/api/pilots/by_numbers")
+def api_pilots_by_numbers():
+    """
+    Ex: /api/pilots/by_numbers?nums=1,48
+    Renvoie uniquement les pilotes demandés (léger, parfait pour favoris).
+    """
+    nums_raw = request.args.get("nums", "").strip()
+    if not nums_raw:
+        return jsonify({"ok": True, "pilots": []})
 
+    # Nettoyage + limite sécurité (même si tu en utilises 2)
+    nums = []
+    for part in nums_raw.split(","):
+        p = part.strip()
+        if p and p.isdigit():
+            nums.append(p)
+
+    # (sécurité anti abus) max 10 côté serveur
+    nums = nums[:10]
+
+    data, err, status = get_data_cached()
+    pilots = parse_rows_as_dicts(data)
+
+    # Trouver la bonne clé "Numero"
+    found = []
+    for p in pilots:
+        k_num = pick_key(p, "Numero", "N°", "Num", "Dossard")
+        if not k_num:
+            continue
+        if str(p.get(k_num)) in nums:
+            found.append(p)
+
+    # Optionnel : trier dans l’ordre demandé
+    def order_key(p):
+        k_num = pick_key(p, "Numero", "N°", "Num", "Dossard")
+        return nums.index(str(p.get(k_num))) if k_num and str(p.get(k_num)) in nums else 999
+
+    found.sort(key=order_key)
+
+    return jsonify({
+        "ok": True,
+        "http_status": status,
+        "error": err,
+        "pilots": found
+    })
+    
     found = None
     for p in pilots:
         k_num = pick_key(p, "Numero", "N°", "Num", "Dossard")
