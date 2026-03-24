@@ -3,8 +3,8 @@
   "short_name": "CFS Live",
   "start_url": "/",
   "scope": "/",
-  "displey": "standalone",
-  "background"_color": "#ffffff",
+  "display": "standalone",
+  "background_color": "#ffffff",
   "theme_color": "#1e2a4a",
   "orientation": "portrait",
   "icons": [
